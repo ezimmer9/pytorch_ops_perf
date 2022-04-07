@@ -15,9 +15,13 @@ parser.add_argument('--no-cmake', action='store_true', default=False,
 parser.add_argument('--no-make', action='store_true', default=False,
                         help='disables make part')
 
-def execute_cmd(cmd):
+def execute_cmd(cmd, num_threads=0):
     lines = []
-    p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True)
+    if num_threads==0:
+        p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True)
+    else:
+        p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True, env={"OMP_NUM_THREADS" : str(num_threads)})
+    
     while True:
         nextline = p1.stdout.readline()
         if nextline == '' and p1.poll() is not None:
@@ -71,8 +75,11 @@ def main(args):
     ''' Execute part'''
     if args.no_make and args.no_cmake:
         os.chdir("build")
-    exe_cmd = ["./code_gen"]
-    lines = execute_cmd(exe_cmd)
+    num_threads=1
+    exe_cmd = ["./code_gen"]   # AG add threads    
+    #exe_cmd = ["OMP_NUM_THREADS=",str(num_threads)," ./code_gen"]   # AG add threads
+    #exe_cmd = ["./code_gen"]   # AG add threads
+    lines = execute_cmd(exe_cmd, num_threads)
     strip_lines(lines)
     
     if lines[len(lines)-1] == "Done":
