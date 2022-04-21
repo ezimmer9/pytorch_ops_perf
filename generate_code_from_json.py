@@ -159,7 +159,7 @@ def generate_ops_from_json(args):
     except:
         print("\n----- you are not in conda env - make sure pytorch is install -----\n")
 
-    sig_file_name = 'RegistrationDeclarations.h'
+    sig_file_name = '../pytorch_ops_perf/RegistrationDeclarations.h'
     signature_ops = parse_sig_file(sig_file_name)
     json_dict = read_from_json(args.ppet_output_file)
     json_ops = {}
