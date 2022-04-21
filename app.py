@@ -93,7 +93,7 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None):
     #exe_cmd = ["./code_gen"]   # AG add threads
     lines = execute_cmd(exe_cmd, num_threads)
     strip_lines(lines)
-    
+    os.chdir("../")
     if lines[len(lines)-1] == "Done":
         print("\nThe execute success\n")
         print("The results are in build/perf_results\n\n")
