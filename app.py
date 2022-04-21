@@ -48,17 +48,21 @@ def strip_lines(lines):
     for i in range(len(lines)):
         lines[i] = lines[i].rstrip("\n")
 
-def pt_cpp_main(args):
+def pt_cpp_main(args, ops_exter=None, consts_exter=None):
     try:
         print("\nConda enviroments is: {}\n".format(os.environ["CONDA_DEFAULT_ENV"]))
     except:
         print("\n----- you are not in conda env - make sure pytorch is install -----\n")
     
     ''' Code Generator part'''
-    if args.ppet_output_file is not None:
-        ops, consts = generate_ops_from_json(args)
+    if ops_exter is not None and consts_exter is not None:
+        ops = ops_exter
+        consts = consts_exter
     else:
-        ops, consts = get_ops_list()
+        if args.ppet_output_file is not None:
+            ops, consts = generate_ops_from_json(args)
+        else:
+            ops, consts = get_ops_list()
     code_gen.main(ops, consts)
     
     ''' CMake part '''
@@ -97,4 +101,4 @@ def pt_cpp_main(args):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    pt_cpp_main(args)
+    pt_cpp_main(args, ops_exter=None, consts_exter=None)
