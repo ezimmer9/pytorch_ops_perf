@@ -48,7 +48,7 @@ def strip_lines(lines):
     for i in range(len(lines)):
         lines[i] = lines[i].rstrip("\n")
 
-def pt_cpp_main(args, ops_exter=None, consts_exter=None):
+def pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=0):
     try:
         print("\nConda enviroments is: {}\n".format(os.environ["CONDA_DEFAULT_ENV"]))
     except:
@@ -64,7 +64,7 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None):
         else:
             ops, consts = get_ops_list()
     code_gen.main(ops, consts)
-    
+    num_max_threads=torch.get_num_threads()
     ''' CMake part '''
     if not args.no_cmake:
         if os.path.exists("build"):
@@ -82,13 +82,13 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None):
         if args.no_cmake:
             os.chdir("build")
         make_cmd = ["make"]
-        num_max_threads=torch.get_num_threads()
-        execute_cmd(make_cmd, num_max_threads)
+        execute_cmd(make_cmd)
 
     ''' Execute part'''
     if args.no_make and args.no_cmake:
         os.chdir("build")
-    num_threads=1
+    if num_threads==0:
+        num_threads=1
     exe_cmd = ["./code_gen"]   # AG add threads    
     #exe_cmd = ["OMP_NUM_THREADS=",str(num_threads)," ./code_gen"]   # AG add threads
     #exe_cmd = ["./code_gen"]   # AG add threads
@@ -102,4 +102,4 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    pt_cpp_main(args, ops_exter=None, consts_exter=None)
+    pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=1)
