@@ -12,8 +12,8 @@ import torch
 import json
 
 parser = argparse.ArgumentParser('Generate-Code-From-JSON', description=__doc__)
-parser.add_argument('-j', '--json', type=str, required=True,
-                    dest="json_open", help="The json file to open and sweep against")
+parser.add_argument('-ppets', '--ppet_sweep', type=str, required=False, default=None,
+                    dest='ppet_output_file', help="Run sweep with input file from ppet, which dump all the OPs not yet in compute ML model")
 
 # https://github.com/pytorch/pytorch/blob/master/torch/csrc/api/include/torch/types.h
 # https://github.com/pytorch/pytorch/blob/master/torch/csrc/utils/python_scalars.h
@@ -161,7 +161,7 @@ def generate_ops_from_json(args):
 
     sig_file_name = 'RegistrationDeclarations.h'
     signature_ops = parse_sig_file(sig_file_name)
-    json_dict = read_from_json(args.json_open)
+    json_dict = read_from_json(args.ppet_output_file)
     json_ops = {}
     ops=[]
     consts=[]

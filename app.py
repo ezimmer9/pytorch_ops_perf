@@ -15,8 +15,11 @@ parser.add_argument('--no-cmake', action='store_true', default=False,
                         help='disables CMake part')
 parser.add_argument('--no-make', action='store_true', default=False,
                         help='disables make part')
-parser.add_argument('-j', '--json', type=str, required=True,
-                    dest="json_open", help="The json file to open and sweep against")
+parser.add_argument('-ppets', '--ppet_sweep', type=str, required=False, default=None,
+                    dest='ppet_output_file', help="Run sweep with input file from ppet, which dump all the OPs not yet in compute ML model")
+parser.add_argument('-sngl', '--singles', type=str, required=False,
+                    dest="singles_json", help="In case of reading from JSON, Try to execute single OP at the time")
+
 def execute_cmd(cmd, num_threads=0):
     lines = []
     if num_threads==0:
@@ -52,8 +55,10 @@ def main(args):
         print("\n----- you are not in conda env - make sure pytorch is install -----\n")
     
     ''' Code Generator part'''
-    ops, consts = generate_ops_from_json(args)
-    #ops, consts = get_ops_list()
+    if args.ppet_output_file is not None:
+        ops, consts = generate_ops_from_json(args)
+    else:
+        ops, consts = get_ops_list()
     code_gen.main(ops, consts)
     
     ''' CMake part '''
