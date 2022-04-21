@@ -82,7 +82,8 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None):
         if args.no_cmake:
             os.chdir("build")
         make_cmd = ["make"]
-        execute_cmd(make_cmd)
+        num_max_threads=torch.get_num_threads()
+        execute_cmd(make_cmd, num_max_threads)
 
     ''' Execute part'''
     if args.no_make and args.no_cmake:
