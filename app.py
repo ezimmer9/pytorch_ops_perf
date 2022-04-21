@@ -7,14 +7,16 @@ import argparse
 import shutil
 import torch
 from ops import get_ops_list
-
+from generate_code_from_json import generate_ops_from_json
+import json
 
 parser = argparse.ArgumentParser('PPET-main', description=__doc__)
 parser.add_argument('--no-cmake', action='store_true', default=False,
                         help='disables CMake part')
 parser.add_argument('--no-make', action='store_true', default=False,
                         help='disables make part')
-
+parser.add_argument('-j', '--json', type=str, required=True,
+                    dest="json_open", help="The json file to open and sweep against")
 def execute_cmd(cmd, num_threads=0):
     lines = []
     if num_threads==0:
@@ -50,7 +52,8 @@ def main(args):
         print("\n----- you are not in conda env - make sure pytorch is install -----\n")
     
     ''' Code Generator part'''
-    ops, consts = get_ops_list()
+    ops, consts = generate_ops_from_json(args)
+    #ops, consts = get_ops_list()
     code_gen.main(ops, consts)
     
     ''' CMake part '''

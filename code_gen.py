@@ -9,6 +9,31 @@ def add_end_sample():
         "   res = get_diff_counters(start_perf_results , end_perf_results);\n" + \
         "   results.push_back(res);\n\n"
     return s
+def join_op_inputs(op, consts):
+    op_inputs_list=[]
+    for a in op:
+        for b in consts:
+            if a==b['name']:
+                if b['type']=='Tensor':
+                    op_inputs_list.append(a)
+                    break
+                else:
+                    if type(b["shape"]) is list:
+                        if len(b["shape"])==0:
+                            shape="0"
+                        else:
+                            str_list=[]
+                            for int_ in b["shape"]:
+                                str_list.append(str(int_).lower())
+                            #shape = "{" + ", ".join(str_list) + "}"
+                            shape = "(" + ", ".join(str_list) + ")"
+                    else:
+                        shape = str(b['shape'])
+                    op_inputs_list.append(shape)
+                    break
+    assert len(op_inputs_list)==len(op), "Error, didnt find all inputs in consts list" 
+    op_inputs = ', '.join(op_inputs_list)
+    return op_inputs
 
 
 def main(ops , consts):
@@ -35,23 +60,34 @@ def main(ops , consts):
     cpp_code += "   PerfResults start_perf_results, end_perf_results, res;\n"
 
     for inp in consts:
-        cpp_code += "   {} {};\n".format(inp["type"], inp["name"])
-        if isinstance(inp['shape'], list):
-            str_list = [str(int_) for int_ in inp["shape"]]
-            shape = "{" + ", ".join(str_list) + "}"
-            if inp["type"] == "Tensor":
-                cpp_code += "   {} = torch::ones({} , TensorOptions(kCPU).dtype(torch::{})); \n".format(inp["name"], shape, inp["dtype"])
-            elif inp["type"] == "IntArrayRef":
-                cpp_code += "   {} = {};\n".format(inp["name"], shape)
-        else:
+        if inp["type"] == "Tensor":
+            cpp_code += "   {} {};\n".format(inp["type"], inp["name"])
+            if isinstance(inp['shape'], list):
+                str_list = [str(int_) for int_ in inp["shape"]]
+                shape = "{" + ", ".join(str_list) + "}"
+                if inp["type"] == "Tensor":
+                    cpp_code += "   {} = torch::ones({} , TensorOptions(kCPU).dtype(torch::{})); \n".format(inp["name"], shape, inp["dtype"])
+                #elif inp["type"] == "IntArrayRef":
+                #    cpp_code += "   {} = {};\n".format(inp["name"], shape)
+            else:
                 cpp_code += "   {} = {};\n".format(inp["name"], inp["shape"])
             
     
     cpp_code += "\n"
 
     for op in ops:
-        op_func = op[0]
-        op_str = op_func + "(" + ", ".join(op[1:]) + ")"
+        op_func = op.pop(0)
+        if any(' self' in el for el in op):
+            op = [i.replace(' self','') for i in op]
+            op_str = op_func + "("    # + ", ".join(op) + ")"
+            # self_input =[k for k in op if ' self' in k]
+            # op.pop(op.index(self_input[0]))
+            # self_input=self_input[0].split(' ',1)[0]
+            # op_str = self_input + "." + op_func + "("  # + ", ".join(op) + ")"
+        else:
+            op_str = op_func + "("    # + ", ".join(op) + ")"
+        op_inputs = join_op_inputs(op, consts)
+        op_str = op_str + op_inputs +")"
         '''add the start sample'''
         cpp_code += add_start_sample()
         cpp_code += "   Tensor out{} = {};\n".format(index, op_str)
