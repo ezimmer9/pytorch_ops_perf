@@ -48,7 +48,7 @@ def strip_lines(lines):
     for i in range(len(lines)):
         lines[i] = lines[i].rstrip("\n")
 
-def main(args):
+def pt_cpp_main(args):
     try:
         print("\nConda enviroments is: {}\n".format(os.environ["CONDA_DEFAULT_ENV"]))
     except:
@@ -97,4 +97,4 @@ def main(args):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    main(args)
+    pt_cpp_main(args)
