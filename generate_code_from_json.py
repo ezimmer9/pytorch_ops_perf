@@ -40,7 +40,7 @@ args_type_dict = { list: ['IntArrayRef', '::std::array<bool,2>', '::std::array<b
                    str: ['Dimname', 'c10::string_view', 'Layout', 'Device', 'MemoryFormat'],
                    float: ['double', 'Scalar']
                         }
-arg_types_to_pytorch_types = { 'IntArrayRef': "kint32",
+arg_types_to_pytorch_types = { 'IntArrayRef': "kInt32",
                                 'ScalarType': "ScalarType::Float",
                                 'Scalar': "kInt32",
                                 'int64_t': "kInt64",

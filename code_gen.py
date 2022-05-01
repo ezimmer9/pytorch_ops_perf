@@ -1,5 +1,5 @@
 import os
-
+import copy
 
 def add_start_sample():
     return "   couners_events.sample(start_perf_results);\n"
@@ -74,8 +74,8 @@ def main(ops , consts):
             
     
     cpp_code += "\n"
-
-    for op in ops:
+    ops_copy = copy.deepcopy(ops)
+    for op in ops_copy:
         op_func = op.pop(0)
         if any(' self' in el for el in op):
             op = [i.replace(' self','') for i in op]

@@ -63,7 +63,8 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=0):
             ops, consts = generate_ops_from_json(args)
         else:
             ops, consts = get_ops_list()
-    code_gen.main(ops, consts)
+    if not args.no_make:
+        code_gen.main(ops, consts)
     num_max_threads=torch.get_num_threads()
     ''' CMake part '''
     if not args.no_cmake:
@@ -81,7 +82,7 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=0):
     if not args.no_make:
         if args.no_cmake:
             os.chdir("build")
-        make_cmd = ["make"]
+        make_cmd = ["make","-j16"]
         execute_cmd(make_cmd)
 
     ''' Execute part'''
@@ -94,12 +95,15 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=0):
     #exe_cmd = ["./code_gen"]   # AG add threads
     lines = execute_cmd(exe_cmd, num_threads)
     strip_lines(lines)
+    with open('perf_results.txt') as json_file:
+        perf_results = json.load(json_file)
+    print(perf_results) 
     os.chdir("../")
     if lines[len(lines)-1] == "Done":
         print("\nThe execute success\n")
         print("The results are in build/perf_results\n\n")
-
+    return perf_results
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=1)
+    p_r = pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=1)
