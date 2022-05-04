@@ -49,10 +49,10 @@ def strip_lines(lines):
         lines[i] = lines[i].rstrip("\n")
 
 def pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=0):
-    try:
-        print("\nConda enviroments is: {}\n".format(os.environ["CONDA_DEFAULT_ENV"]))
-    except:
-        print("\n----- you are not in conda env - make sure pytorch is install -----\n")
+    #try:
+    #    print("\nConda enviroments is: {}\n".format(os.environ["CONDA_DEFAULT_ENV"]))
+    #except:
+    #    print("\n----- you are not in conda env - make sure pytorch is install -----\n")
     
     ''' Code Generator part'''
     if ops_exter is not None and consts_exter is not None:
@@ -76,14 +76,20 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=0):
         os.environ["CMAKE_PREFIX_PATH"] = pytorch_cmake
         #cmake_cmd = ["cmake", "-DCMAKE_PREFIX_PATH=`python -c 'import torch;print(torch.utils.cmake_prefix_path)'`" , ".."]
         cmake_cmd = ["cmake", ".."]
-        execute_cmd(cmake_cmd)
+        try:
+            execute_cmd(cmake_cmd)
+        except:
+            pass
     
     ''' Make part'''
     if not args.no_make:
         if args.no_cmake:
             os.chdir("build")
         make_cmd = ["make","-j16"]
-        execute_cmd(make_cmd)
+        try:
+            execute_cmd(make_cmd)
+        except:
+            pass
 
     ''' Execute part'''
     if args.no_make and args.no_cmake:
@@ -93,15 +99,18 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=0):
     exe_cmd = ["./code_gen"]   # AG add threads    
     #exe_cmd = ["OMP_NUM_THREADS=",str(num_threads)," ./code_gen"]   # AG add threads
     #exe_cmd = ["./code_gen"]   # AG add threads
-    lines = execute_cmd(exe_cmd, num_threads)
-    strip_lines(lines)
-    with open('perf_results.txt') as json_file:
-        perf_results = json.load(json_file)
-    print(perf_results) 
-    os.chdir("../")
-    if lines[len(lines)-1] == "Done":
-        print("\nThe execute success\n")
-        print("The results are in build/perf_results\n\n")
+    try:
+        lines = execute_cmd(exe_cmd, num_threads)
+        strip_lines(lines)
+        with open('perf_results.txt') as json_file:
+            perf_results = json.load(json_file)
+        print(perf_results) 
+        os.chdir("../")
+        if lines[len(lines)-1] == "Done":
+            print("The execute success")
+           # print("The results are in build/perf_results\n\n")
+    except:
+        perf_results={}    
     return perf_results
 
 if __name__ == "__main__":
