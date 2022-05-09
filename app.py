@@ -104,10 +104,11 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=0):
         strip_lines(lines)
         with open('perf_results.txt') as json_file:
             perf_results = json.load(json_file)
-        print(perf_results) 
+        #print(perf_results) 
         os.chdir("../")
         if lines[len(lines)-1] == "Done":
-            print("The execute success")
+           pass
+           #print("The execute success")
            # print("The results are in build/perf_results\n\n")
     except:
         perf_results={}    
