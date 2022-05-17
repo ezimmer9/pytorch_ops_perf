@@ -99,12 +99,16 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=0):
     exe_cmd = ["./code_gen"]   # AG add threads    
     #exe_cmd = ["OMP_NUM_THREADS=",str(num_threads)," ./code_gen"]   # AG add threads
     #exe_cmd = ["./code_gen"]   # AG add threads
+    out_dims =[]
     try:
         lines = execute_cmd(exe_cmd, num_threads)
         strip_lines(lines)
         with open('perf_results.txt') as json_file:
             perf_results = json.load(json_file)
         #print(perf_results) 
+        with open('tensor_shapes.txt') as f:
+            for t_shapes in f:
+                out_dims.append(eval(t_shapes.strip()))
         os.chdir("../")
         if lines[len(lines)-1] == "Done":
            pass
@@ -112,7 +116,7 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=0):
            # print("The results are in build/perf_results\n\n")
     except:
         perf_results={}    
-    return perf_results
+    return perf_results, out_dims
 
 if __name__ == "__main__":
     args = parser.parse_args()

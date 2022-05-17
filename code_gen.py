@@ -9,6 +9,9 @@ def add_end_sample():
         "   res = get_diff_counters(start_perf_results , end_perf_results);\n" + \
         "   results.push_back(res);\n\n"
     return s
+def add_tensor_shape_to_file(index):
+    s = '   tensor_shapes_file << "[" << out{}_shape << ",[" << out{}.dtype() << "]]" << std::endl;\n'.format(index, index)
+    return s
 def join_op_inputs(op, consts):
     op_inputs_list=[]
     for a in op:
@@ -49,7 +52,7 @@ def main(ops , consts):
                 '#include "common.h"\n\n'
 
     cpp_code += "std::vector<PerfResults> results;\n\n"
-
+    cpp_code += "std::ofstream tensor_shapes_file;\n\n"
     cpp_code += "using namespace at;\n\n"
     
     cpp_code += "int main() {\n"
@@ -58,7 +61,7 @@ def main(ops , consts):
     cpp_code += "   PerfEventsCounter couners_events(counters);\n"
     cpp_code += "   couners_events.enable();\n"
     cpp_code += "   PerfResults start_perf_results, end_perf_results, res;\n"
-
+    cpp_code += '   tensor_shapes_file.open ("tensor_shapes.txt");\n'    # , std::ios_base::app
     for inp in consts:
         if inp["type"] == "Tensor":
             cpp_code += "   {} {};\n".format(inp["type"], inp["name"])
@@ -91,10 +94,15 @@ def main(ops , consts):
         '''add the start sample'''
         cpp_code += add_start_sample()
         cpp_code += "   Tensor out{} = {};\n".format(index, op_str)
+        cpp_code += '   IntArrayRef out{}_shape =  out{}.sizes();\n'.format(index, index) 
+        cpp_code += add_tensor_shape_to_file(index)
+        #cpp_code += '   std::cout << "tensor out{} sizes:" << out{}_shape << std::endl;\n'.format(index, index)
+        #cpp_code += '   std::cout << "dtype out{}:" << out{}.dtype() << std::endl;\n'.format(index, index)
         '''add the end sample + get diff between counter + push to vector'''
         cpp_code += add_end_sample()
         index += 1
 
+    cpp_code += '   tensor_shapes_file.close();\n'   
     cpp_code += "   dump_results_to_file(results);\n\n"
     cpp_code += '   std::cout << "Done" << std::endl;\n'
 
