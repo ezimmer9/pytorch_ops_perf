@@ -10,7 +10,7 @@ def add_end_sample():
         "   results.push_back(res);\n\n"
     return s
 def add_tensor_shape_to_file(index):
-    s = '   tensor_shapes_file << "[" << out{}_shape << ",[" << out{}.dtype() << "]]" << std::endl;\n'.format(index, index)
+    s = '   tensor_shapes_file << "[" << out{}_shape << ",torch." << out{}.dtype() << "]" << std::endl;\n'.format(index, index)
     return s
 def join_op_inputs(op, consts):
     op_inputs_list=[]
