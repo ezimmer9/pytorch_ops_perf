@@ -89,7 +89,7 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=0):
         try:
             execute_cmd(make_cmd)
         except:
-            pass
+            perf_results={} 
 
     ''' Execute part'''
     if args.no_make and args.no_cmake:
@@ -109,13 +109,13 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=0):
         with open('tensor_shapes.txt') as f:
             for t_shapes in f:
                 out_dims.append(eval(t_shapes.strip()))
-        os.chdir("../")
         if lines[len(lines)-1] == "Done":
            pass
            #print("The execute success")
            # print("The results are in build/perf_results\n\n")
     except:
         perf_results={}    
+    os.chdir("../")
     return perf_results, out_dims
 
 if __name__ == "__main__":
