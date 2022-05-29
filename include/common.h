@@ -55,9 +55,9 @@ PERF_COUNT_SW_MAX
 CounterList get_defaults_counters()
 {
     CounterList counters;
-    std::string str[NUM_COUNTERS] = {"instructions" , "cycles" , "llc_access" , "llc_miss" , "llc_read"};
-    enum perf_type_id types[NUM_COUNTERS] = {PERF_TYPE_HARDWARE , PERF_TYPE_HARDWARE , PERF_TYPE_HARDWARE , PERF_TYPE_HARDWARE , PERF_TYPE_HW_CACHE};
-    __u64 id[NUM_COUNTERS] = {PERF_COUNT_HW_INSTRUCTIONS , PERF_COUNT_HW_CPU_CYCLES , PERF_COUNT_HW_CACHE_REFERENCES , PERF_COUNT_HW_CACHE_MISSES , (0x2 | 0x0<<8 | 0x0<<16)};
+    std::string str[NUM_COUNTERS] = {"instructions" , "cycles" , "llc_access" , "L1_read" , "L1_write"};
+    enum perf_type_id types[NUM_COUNTERS] = {PERF_TYPE_HARDWARE , PERF_TYPE_HARDWARE , PERF_TYPE_HARDWARE , PERF_TYPE_HW_CACHE , PERF_TYPE_HW_CACHE};
+    __u64 id[NUM_COUNTERS] = {PERF_COUNT_HW_INSTRUCTIONS , PERF_COUNT_HW_CPU_CYCLES , PERF_COUNT_HW_CACHE_REFERENCES , 0x0 , 0x2};
     for (int i = 0 ; i < NUM_COUNTERS ; i++){
         counters.insert(std::make_pair(str[i], std::make_pair(types[i], id[i])));
     }
