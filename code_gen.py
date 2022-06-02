@@ -90,7 +90,11 @@ def main(ops , consts):
         else:
             op_str = op_func + "("    # + ", ".join(op) + ")"
         op_inputs = join_op_inputs(op, consts)
-        op_str = op_str + op_inputs +")"
+        if op_func[-1]=="_":
+            op_inputs_list = op_inputs.split(",",1)
+            op_str = op_inputs_list[0] +"."+op_str + op_inputs_list[1] +")"
+        else:
+            op_str = op_str + op_inputs +")"
         '''add the start sample'''
         cpp_code += add_start_sample()
         cpp_code += "   Tensor out{} = {};\n".format(index, op_str)
@@ -104,7 +108,7 @@ def main(ops , consts):
 
     cpp_code += '   tensor_shapes_file.close();\n'   
     cpp_code += "   dump_results_to_file(results);\n\n"
-    cpp_code += '   std::cout << "Done" << std::endl;\n'
+    cpp_code += '   std::cout << "Dne,";\n'
 
     cpp_code += "}"
 
