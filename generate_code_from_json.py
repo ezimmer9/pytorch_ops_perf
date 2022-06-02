@@ -186,6 +186,8 @@ def generate_ops_from_json(args):
         for i, tensor_in in enumerate(ops_in_json['inputs']):
             tensor_info = json_dict['tensors'][tensor_in]
             tensor_name = tensor_info['name'].replace('-','_')
+            tensor_name = tensor_name.replace('(','_')
+            tensor_name = tensor_name.replace(')','_')
             tensor_dtype = tensor_dtype_dict(tensor_info['dtype'])
             tensor_shape = tensor_info['shape']
             json_ops[op_type]['Tensors'].append(tensor_info)
