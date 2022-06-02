@@ -60,6 +60,11 @@ def read_from_json(filename):
     #print("Reading file: ",filename) 
     return json_dict
 
+def save_as_json(dict_out, filename):
+    with open(filename, "wt") as f:
+        f.write(json.dumps(dict_out, indent=4))
+    print("Save to file: ",filename)
+
 def new_signature(input_list):
     input_struct = []
     for in_iter in input_list:
@@ -219,4 +224,5 @@ def generate_ops_from_json(args):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    generate_ops_from_json(args)
+    ops, consts = generate_ops_from_json(args)
+    save_as_json([ops, consts], "generated_op_consts_from_json.json")
