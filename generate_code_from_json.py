@@ -60,6 +60,11 @@ def read_from_json(filename):
     #print("Reading file: ",filename) 
     return json_dict
 
+def save_as_json(dict_out, filename):
+    with open(filename, "wt") as f:
+        f.write(json.dumps(dict_out, indent=4))
+    print("Save to file: ",filename)
+
 def new_signature(input_list):
     input_struct = []
     for in_iter in input_list:
@@ -203,7 +208,14 @@ def generate_ops_from_json(args):
                 args_in=str(args_in).lower()
             json_ops[op_type]['args'].append(args_in)
             ops_input_list.append(arg_name)
-            consts.append({"name": arg_name, "shape": args_in, "dtype": arg_types_to_pytorch_types[arg_types[0][j]], "type": arg_types[0][j]})
+            if arg_types[0][j]=='Scalar':
+                if type(args_in) is float:
+                    arg_dtype = 'kFloat32'
+                else:
+                    arg_dtype = 'kInt32'
+            else:
+                arg_dtype = arg_types_to_pytorch_types[arg_types[0][j]]
+            consts.append({"name": arg_name, "shape": args_in, "dtype": arg_dtype, "type": arg_types[0][j]})
         ops.append(ops_input_list)    
     
     #print(json_ops)
@@ -212,4 +224,5 @@ def generate_ops_from_json(args):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    generate_ops_from_json(args)
+    ops, consts = generate_ops_from_json(args)
+    save_as_json([ops, consts], "generated_op_consts_from_json.json")
