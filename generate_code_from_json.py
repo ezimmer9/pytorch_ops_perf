@@ -134,6 +134,10 @@ def check_all_args_exist_in_sig(sig,all_args):
                 if any(r in k for k in ins):
                     this_arg_in_sig=True
                     arg_types.append(r)
+                    break
+            else:
+                continue
+            break
         all_args_in_sig = all_args_in_sig and this_arg_in_sig
     return all_args_in_sig, arg_types
                 
