@@ -108,6 +108,9 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=0):
         #print(perf_results) 
         with open('tensor_shapes.txt') as f:
             for t_shapes in f:
+                t_shapes = t_shapes.replace("c10::","").lower()
+                t_shapes = t_shapes.replace("unsigned char","uint8").lower()
+                t_shapes = t_shapes.replace("signed char","int8").lower()
                 out_dims.append(eval(t_shapes.strip()))
         if lines[len(lines)-1] == "Done":
            pass
