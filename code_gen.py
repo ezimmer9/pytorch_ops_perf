@@ -98,12 +98,12 @@ def main(ops , consts):
         '''add the start sample'''
         cpp_code += add_start_sample()
         cpp_code += "   Tensor out{} = {};\n".format(index, op_str)
+        cpp_code += add_end_sample()
         cpp_code += '   IntArrayRef out{}_shape =  out{}.sizes();\n'.format(index, index) 
         cpp_code += add_tensor_shape_to_file(index)
         #cpp_code += '   std::cout << "tensor out{} sizes:" << out{}_shape << std::endl;\n'.format(index, index)
         #cpp_code += '   std::cout << "dtype out{}:" << out{}.dtype() << std::endl;\n'.format(index, index)
         '''add the end sample + get diff between counter + push to vector'''
-        cpp_code += add_end_sample()
         index += 1
 
     cpp_code += '   tensor_shapes_file.close();\n'   

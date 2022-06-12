@@ -46,7 +46,7 @@ PerfHWCounter::PerfHWCounter(
     //pe.exclusive = 0;
     // Don't count hypervisor events.
     pe.exclude_hv = 1;
-    pe.inherit=1;
+    pe.inherit=0;
 
     int group_fd = is_leader ? -1 : group_leader->_fd;
     
