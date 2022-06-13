@@ -65,6 +65,7 @@ def main(ops , consts):
     cpp_code += "       num_of_threads = atoi(argv[1]);\n"
     cpp_code += "   }\n"
     cpp_code += "   torch::set_num_threads(num_of_threads);\n"
+    cpp_code += "   torch::set_num_interop_threads(1);\n"
     cpp_code += "   CounterList counters;\n"
     cpp_code += "   counters = get_defaults_counters();\n"
     cpp_code += "   PerfEventsCounter couners_events(counters);\n"

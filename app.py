@@ -96,12 +96,13 @@ def pt_cpp_main(args, ops_exter=None, consts_exter=None, num_threads=0):
         os.chdir("build")
     if num_threads==0:
         num_threads=1
-    exe_cmd = ["./code_gen"]   # AG add threads    
+    exe_cmd = ["./code_gen", str(num_threads)]  # AG add threads    
     #exe_cmd = ["OMP_NUM_THREADS=",str(num_threads)," ./code_gen"]   # AG add threads
     #exe_cmd = ["./code_gen"]   # AG add threads
     out_dims =[]
     try:
-        lines = execute_cmd(exe_cmd, num_threads)
+        lines = execute_cmd(exe_cmd, 0)
+        #lines = execute_cmd(exe_cmd, num_threads)
         strip_lines(lines)
         with open('perf_results.txt') as json_file:
             perf_results = json.load(json_file)
