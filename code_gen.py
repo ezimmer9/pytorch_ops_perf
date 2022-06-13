@@ -47,6 +47,7 @@ def main(ops , consts):
                 "#include <time.h>\n" + \
                 "#include <unistd.h>\n" + \
                 "#include <torch/torch.h>\n" + \
+                "#include <cstdlib>\n" + \
                 "#include <ATen/ATen.h>\n\n" + \
                 '#include "perf_events.hpp"\n' + \
                 '#include "common.h"\n\n'
@@ -55,7 +56,15 @@ def main(ops , consts):
     cpp_code += "std::ofstream tensor_shapes_file;\n\n"
     cpp_code += "using namespace at;\n\n"
     
-    cpp_code += "int main() {\n"
+    cpp_code += "int main(int argc, char **argv) {\n"
+    cpp_code += "   int num_of_threads;\n"
+    cpp_code += "   if (argc < 2){\n"
+    cpp_code += "       num_of_threads = 1;\n"
+    cpp_code += "   }\n"
+    cpp_code += "   else {\n"
+    cpp_code += "       num_of_threads = atoi(argv[1]);\n"
+    cpp_code += "   }\n"
+    cpp_code += "   torch::set_num_threads(num_of_threads);\n"
     cpp_code += "   CounterList counters;\n"
     cpp_code += "   counters = get_defaults_counters();\n"
     cpp_code += "   PerfEventsCounter couners_events(counters);\n"
