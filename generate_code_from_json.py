@@ -175,10 +175,10 @@ def generate_ops_from_json(args):
     ops=[]
     consts=[]
     for op_count, ops_in_json in enumerate(json_dict['layers']):
-        if '::' in ops_in_json['optype']:
+        if '::' in ops_in_json['optype'] and (ops_in_json['optype'].split('::',1)[1]) in signature_ops:
             op_type = ops_in_json['optype'].split('::',1)[1]
         else:
-            print("Warning, Do not support non :: OPs : ", ops_in_json['optype'])
+            print("Warning, Do not support this OP (non standard pytorch): ", ops_in_json['optype'])
             continue
         op_signatures = signature_ops[op_type]
         json_ops[op_type]={}

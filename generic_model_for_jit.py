@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import argparse
 import torch
 import intel_extension_for_pytorch as ipex
@@ -45,10 +46,13 @@ class Model_conv2d(torch.nn.Module):
 # Tensor conv2d(const Tensor & input, const Tensor & weight, const c10::optional<Tensor> & bias, IntArrayRef stride, IntArrayRef padding, IntArrayRef dilation, int64_t groups); // {"schema": "aten::conv2d(Tensor input, Tensor weight, Tensor? bias=None, int[2] stride=1, int[2] padding=0, int[2] dilation=1, int groups=1) -> Tensor", "dispatch": "False", "default": "True"}
 
 
-def generic_model_for_jit(model_class, data_type, params):
-    model=model_class(data_type, params)
+def generic_model_for_jit(model_class, data_type, params, input):
+    model=model_class(data_type, params).to(memory_format=torch.channels_last)
     model.eval()
-    model_jit=torch.jit.script(model)
+    with torch.cpu.amp.autocast():
+        #model_jit=torch.jit.script(model)
+        model_jit_tmp=torch.jit.trace(model, input)
+        model_jit=torch.jit.freeze(model_jit_tmp)
     model_file_name = model_class.__name__+'_jit.pt'
     model_jit.save(model_file_name)
     return model_jit
@@ -77,7 +81,14 @@ def parse_params(ops, consts):
         params.append(consts[4]['shape'])
         params.append(consts[5]['shape'])
         params.append(consts[6]['shape'])
-    return params, data_type 
+    input_DIM_tuple = (consts[0]['shape'][0],)
+    for in_DIM in consts[0]['shape'][1:]:
+        input_DIM_tuple=input_DIM_tuple+(in_DIM,)
+    if op_name=='conv2d':
+        input = torch.ones(input_DIM_tuple, dtype=data_type).to(memory_format=torch.channels_last)
+    else:
+        input = torch.ones(input_DIM_tuple, dtype=data_type)
+    return params, data_type, input 
 
 def parse_input_params(ops, consts):
     op_name=ops[0]
@@ -109,8 +120,8 @@ def prepare_op_model_and_inputs(ops, consts):
                 consts_for_op.append(c)
                 break
     if ops[0] in ops_with_params or (not os.path.exists(Model_for_jit.__name__+'_jit.pt')):
-        params, data_type = parse_params(ops, consts_for_op)
-        model_jit = generic_model_for_jit(Model_for_jit, data_type, params)
+        params, data_type, input = parse_params(ops, consts_for_op)
+        model_jit = generic_model_for_jit(Model_for_jit, data_type, params, input)
     input_params = parse_input_params(ops, consts_for_op)
     return input_params
 if __name__ == "__main__":
@@ -119,42 +130,56 @@ if __name__ == "__main__":
     Model_for_jit = Model_linear
     params = [args.K, args.M]
     data_type=torch.bfloat16
-    model_jit = generic_model_for_jit(Model_for_jit, data_type, params)
-    out=model_jit(torch.ones((1,args.M), dtype=torch.bfloat16))
+    input=torch.ones((1,args.M), dtype=torch.bfloat16)
+    model_jit = generic_model_for_jit(Model_for_jit, data_type, params, input)
+    out=model_jit(input)
     print(out.shape)
     ##### mm
     Model_for_jit = Model_mm
     params = []
     data_type=torch.bfloat16
-    model_jit = generic_model_for_jit(Model_for_jit, data_type, params)
     input_1=torch.ones((64,128), dtype=torch.bfloat16)
     input_2=torch.ones((128,256), dtype=torch.bfloat16)
+    model_jit = generic_model_for_jit(Model_for_jit, data_type, params, (input_1,input_2))
     out=model_jit(input_1,input_2)
     print(out.shape)    
     ##### matmul
     Model_for_jit = Model_matmul
     params = []
     data_type=torch.bfloat16
-    model_jit = generic_model_for_jit(Model_for_jit, data_type, params)
     input_1=torch.ones((64,128), dtype=torch.bfloat16)
     input_2=torch.ones((128,256), dtype=torch.bfloat16)
+    model_jit = generic_model_for_jit(Model_for_jit, data_type, params, (input_1,input_2))
     out=model_jit(input_1,input_2)
     print(out.shape)
     ##### bmm
     Model_for_jit = Model_bmm
     params = []
     data_type=torch.bfloat16
-    model_jit = generic_model_for_jit(Model_for_jit, data_type, params)
     input_1=torch.ones((33,64,128), dtype=torch.bfloat16)
     input_2=torch.ones((33,128,256), dtype=torch.bfloat16)
+    model_jit = generic_model_for_jit(Model_for_jit, data_type, params, (input_1,input_2))
     out=model_jit(input_1,input_2)
     print(out.shape)    
    ##### Conv2d
     Model_for_jit = Model_conv2d
-    params = [1,32,3, [1,1], [0,0],[1,1],1]
+#    params = [3, 768,16, [16,16], [0,0],[1,1],1]
+    in_channels=3
+    out_channels=16
+    kernel=1
+    batch=128
+    W=256
+    H=256
+    stride=1
+    params = [in_channels, out_channels,kernel, [stride,stride], [0,0],[1,1],1]
     data_type=torch.bfloat16
-    model_jit = generic_model_for_jit(Model_for_jit, data_type, params)
-    input_conv=torch.ones((64,1,28,28), dtype=torch.bfloat16)
+    input_conv=torch.ones((batch,in_channels,W,H), dtype=torch.bfloat16).to(memory_format=torch.channels_last)
+    model_jit = generic_model_for_jit(Model_for_jit, data_type, params, input_conv)
+    st=time.time()
     out=model_jit(input_conv)
+    conv2d_time=(time.time()-st)
+    conv2d_cycles=conv2d_time*800*1e6
+    conv2d_mac = (W-stride/2+1)*(H-stride/2+1)*kernel*kernel*in_channels*out_channels*batch
+    print("conv2d time:", conv2d_time, " cycles @800Mz", conv2d_cycles, "mac/cycles", conv2d_mac/conv2d_cycles)
     print(out.shape)    
 
